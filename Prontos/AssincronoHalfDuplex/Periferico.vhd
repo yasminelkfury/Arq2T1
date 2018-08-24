@@ -12,9 +12,13 @@ entity Periferico is
 		data: 			inout STD_LOGIC_VECTOR(7 downto 0);
 		
 		-- Interface com a interface de comunicacao
-		send_in_IPER:	in STD_LOGIC;
-		send_out_IPER: out STD_LOGIC;
-		ack_in_IPER: 	in STD_LOGIC
+			
+			-- Sinais de transmicao de dados
+			send_CPU: out STD_LOGIC;
+			ack_CPU: 	in STD_LOGIC;
+			
+			-- Sinal de recepcao de dados 
+			receive_CPU:	in STD_LOGIC
 	);
 end Periferico;
 
@@ -32,12 +36,12 @@ begin
 		
 			contador <= (others=>'0');
 			dado <= (others=>'Z');
-			send_out_IPER <= '0';
+			send_CPU <= '0';
 		
 		elsif falling_edge(clock)  then
 			
 			-- OBS.: O sinal send deve ficar apenas um ciclo em '1'
-			if send_in_IPER = '1' then
+			if receive_CPU = '1' then
 			
 				dado <= data;
 				contador <= contador + 1;

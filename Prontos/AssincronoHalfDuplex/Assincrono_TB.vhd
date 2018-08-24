@@ -19,7 +19,7 @@ architecture tbAssincrono of tbAssincrono is
 
 -- Sinais entre interfaces
  	signal transmitir_in, transmitir_out: std_logic;
-	signal acknowledge_in, acknowledge_out: std_logic;
+	signal PerAccepted, CPUAccepted: std_logic;
 
 -- Sinais do Periferico e interface do PER OKAY
 	signal clockPeriferico: std_logic;
@@ -46,9 +46,9 @@ begin
 		
 		data => data,
 		
-		send_out_ICPU => transmitirDadoCPU,
-		ack_in_ICPU => prontoParaproximodadoCPU,
-		send_in_ICPU => dadoRecebidoPER
+		send_PER => transmitirDadoCPU,
+		ack_PER => prontoParaproximodadoCPU,
+		receive_PER => dadoRecebidoPER
 	);
 	InterfaceCPU: entity work.InterfaceCPU port map
 	(
@@ -57,14 +57,14 @@ begin
 		
 		data => data,
 		
-		send_out_CPU => dadoRecebidoPER,
-		send_in_CPU => transmitirDadoCPU,
+		receive_out_CPU => dadoRecebidoPER,
+		send_in_PER => transmitirDadoCPU,
 		ack_out_CPU => prontoParaProximoDadoCPU,
 		
-		send_in_IPER => transmitir_in,
-		send_out_IPER => transmitir_out,
-		ack_in_IPER => acknowledge_in,
-		ack_out_IPER => acknowledge_out
+		receive_in_CPU => transmitir_in,
+		send_out_PER => transmitir_out,
+		ack_in_CPU => PerAccepted,
+		accept_PER => CPUAccepted
 	);
 
 	resetPeriferico <= '1', '0' after 100ns;
@@ -81,9 +81,9 @@ begin
 		
 		data => data,
 		
-		send_in_IPER => dadoRecebidoCPU,
-		send_out_IPER => transmitirDadoPER,
-		ack_in_IPER => prontoParaProximoDadoPER
+		receive_CPU => dadoRecebidoCPU,
+		send_CPU => transmitirDadoPER,
+		ack_CPU => prontoParaProximoDadoPER
 	);
 	InterfacePeriferico: entity work.InterfacePeriferico port map
 	(
@@ -92,13 +92,13 @@ begin
 		
 		data => data,
 		
-		send_in_ICPU => transmitir_out,
-		send_out_ICPU => transmitir_in,
-		ack_in_ICPU => acknowledge_out,
-		ack_out_ICPU => acknowledge_in,
+		receive_in_PER=> transmitir_out,
+		send_out_CPU => transmitir_in,
+		accept_CPU => PerAccepted,
+		ack_in_PER => CPUAccepted,
 		
-		send_in_PER => transmitirDadoPER,
-		send_out_PER => dadoRecebidoCPU,
+		send_in_CPU => transmitirDadoPER,
+		receive_out_PER => dadoRecebidoCPU,
 		ack_out_PER => prontoParaProximoDadoPER
 	);
 end tbAssincrono;
