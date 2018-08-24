@@ -5,33 +5,48 @@ use IEEE.STD_LOGIC_unsigned.all;
 entity CPU is
 	port
 	(
-		clock: in STD_LOGIC;
-		reset: in STD_LOGIC;
+		clock: 			in STD_LOGIC;
+		reset: 			in STD_LOGIC;
+		
+		-- Dado para comunicacao bidirecional
+		data: 			inout STD_LOGIC_VECTOR(7 downto 0);
+		
 		-- Interface com a interface de comunicacao
-		dadoParaInterface: out STD_LOGIC_VECTOR(7 downto 0);
-		prontoParaProximoDado: in STD_LOGIC;
-		transmitirDado: out STD_LOGIC
+		send_out_ICPU: out STD_LOGIC;
+		ack_in_ICPU: 	in STD_LOGIC;
+		send_in_ICPU: 	in STD_LOGIC
 	);
 end CPU;
 
 architecture CPU of CPU is
-	signal dado: STD_LOGIC_VECTOR(7 downto 0);
-	signal contador: STD_LOGIC_VECTOR(15 downto 0);
+
+	signal dado: 		STD_LOGIC_VECTOR(7 downto 0);
+	signal contador: 	STD_LOGIC_VECTOR(15 downto 0);
+
 begin
-	dadoParaInterface <= dado;
+
+	data <= dado when ack_in_ICPU = '1' else (others=>'Z');
+
 	Transmissao: process(clock, reset)
 	begin
 		if reset = '1' then
-			dado <= x"00";
-			transmitirDado <= '1';
+
+			dado <= (others=>'0');
+			send_out_ICPU <= '1';
 			contador <= (others=>'0');
-		elsif clock'event and clock = '1' then
-			if prontoParaProximoDado = '1' and contador < 20 then
+
+		elsif falling_edge(clock) then
+
+			if ack_in_ICPU = '1' and contador < 20 then
+
 				dado <= dado + 1;
 				contador <= contador + 1;
-				transmitirDado <= '1';
+				send_out_ICPU <= '1';
+
 			else
-				transmitirDado <= '0';
+
+				send_out_ICPU <= '0';
+
 			end if;
 		end if;
 	end process;
