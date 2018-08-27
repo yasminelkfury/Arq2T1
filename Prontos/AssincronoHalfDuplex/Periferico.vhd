@@ -29,6 +29,8 @@ architecture Periferico of Periferico is
 
 begin
 	
+	data <= dado when ack_CPU = '1' else (others=>'Z') after 25 ns;
+	
 	Recepcao: process(clock, reset)
 	begin
 		

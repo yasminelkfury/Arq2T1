@@ -39,11 +39,13 @@ architecture InterfaceCPU of InterfaceCPU is
 
 	signal estadoTx: 	ESTADO_TRANSMISSAO;
 	signal estadoRx: 	ESTADO_RECEPCAO;
-	signal regData: 	STD_LOGIC_VECTOR(7 downto 0);
+	signal flag: 	std_logic;
+	signal regData_trans: 	STD_LOGIC_VECTOR(7 downto 0);
+	signal regData_rec: 	STD_LOGIC_VECTOR(7 downto 0);
 	
 begin
 	
-	data <= regData;
+	data <= regData_trans when flag = '1' else (others=>'Z') after 25 ns;
 
 	Transmissao: process(clock, reset)
 	begin
@@ -51,10 +53,10 @@ begin
 		
 			estadoTx <= esperaDados;
 			ack_out_CPU <= '0';
-   	 	send_out_PER <= '0';
-			regData <= (others=>'0');
+   	 	send_out_PER <= '1';
+			regData_trans <= (others=>'0');
 			
-		elsif rising_edge(clock) then
+		elsif falling_edge(clock) then
 			
 			case estadoTx is
 				
@@ -64,8 +66,9 @@ begin
 					
 					if send_in_PER = '1' then
 					
-						regData <= data;
+						regData_trans <= data;
 						send_out_PER <= '1';
+						flag <= '1';
 						estadoTx <= esperaAck;
 					
 					end if;
@@ -75,6 +78,7 @@ begin
 					if ack_in_CPU = '1' then
 						
 						estadoTx <= esperaFimAck;
+						flag <= '0';
 						send_out_PER <= '0';
 					
 					end if;
@@ -99,6 +103,7 @@ begin
 		
 			receive_out_CPU <= '0';
 			accept_PER <= '0';
+			regData_rec <= (others=>'0');
 			
 		elsif rising_edge(clock) then
 				
@@ -106,9 +111,9 @@ begin
 				
 					when receberDados =>
 						
-						if send_in_PER = '1' then
+						if receive_in_CPU = '1' then
 							
-							regData <= data;
+							regData_rec <= data;
 							accept_PER <= '1';
 							receive_out_CPU <= '1';
 							estadoRx <= receberFim;
@@ -117,7 +122,7 @@ begin
 						
 					when receberFim =>
 							
-						if send_in_PER = '0' then
+						if receive_in_CPU = '0' then
 						
 							accept_PER <= '0';
 							receive_out_CPU <= '0';

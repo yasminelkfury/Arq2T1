@@ -26,10 +26,11 @@ architecture CPU of CPU is
 
 	signal dado: 		STD_LOGIC_VECTOR(7 downto 0);
 	signal contador: 	STD_LOGIC_VECTOR(15 downto 0);
-
+	signal flag: 		STD_LOGIC;
+	
 begin
 
-	data <= dado when ack_PER = '1' else (others=>'Z') after 1 ns;
+	data <= dado when flag = '1' else (others=>'0') when reset = '1' else (others=>'Z') after 25 ns;
 
 	Transmissao: process(clock, reset)
 	begin
@@ -46,10 +47,12 @@ begin
 				dado <= dado + 1;
 				contador <= contador + 1;
 				send_PER <= '1';
+				flag <= '1';
 
 			else
 
 				send_PER <= '0';
+				flag <= '0';
 
 			end if;
 		end if;

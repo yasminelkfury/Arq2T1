@@ -39,11 +39,11 @@ architecture InterfacePeriferico of InterfacePeriferico is
 
 	signal estadoTx: 	ESTADO_TRANSMISSAO;
 	signal estadoRx: 	ESTADO_RECEPCAO;
-	signal regData: 	STD_LOGIC_VECTOR(7 downto 0);
-
+	signal regData_trans: 	STD_LOGIC_VECTOR(7 downto 0);
+	signal regData_rec: 	STD_LOGIC_VECTOR(7 downto 0);
 begin
 
-	data <= regData;
+	data <= regData_trans when send_in_CPU = '1' else (others=>'Z') after 25 ns;
 
 	Transmissao: process(clock, reset)
 	begin
@@ -52,7 +52,7 @@ begin
 			estadoTx <= esperaDados;
 			ack_out_PER <= '0';
    	 	send_out_CPU <= '0';
-			regData <= (others=>'0');
+			regData_trans <= (others=>'0');
 			
 		elsif rising_edge(clock) then
 			
@@ -64,7 +64,7 @@ begin
 					
 					if send_in_CPU = '1' then
 					
-						regData <= data;
+						regData_trans <= data;
 						send_out_CPU <= '1';
 						estadoTx <= esperaAck;
 					
@@ -97,8 +97,9 @@ begin
 	begin
 		if reset = '1' then
 		
-			receive_out_PER <= '0';
 			accept_CPU <= '0';
+			receive_out_PER <= '0';
+			regData_rec <= (others=>'Z');
 			
 		elsif rising_edge(clock) then
 				
@@ -108,7 +109,7 @@ begin
 						
 						if receive_in_PER = '1' then
 							
-							regData <= data;
+							regData_rec <= data;
 							accept_CPU <= '1';
 							receive_out_PER <= '1';
 							estadoRx <= receberFim;
